@@ -19,7 +19,7 @@ java -version # this should output "1.8.X_XXX"
 ```pip install git+https://github.com/minerllabs/minerl --user```
 
 ## Downgrade numpy because of dependency problems
-```pip install --upgrade numpy==1.13.1```
+```pip install --upgrade numpy==1.23.1```
 
 ## Clone our project
 ```git clone https://github.com/emilytoyber/Minecraft_proj.git```
