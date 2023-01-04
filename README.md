@@ -23,3 +23,6 @@ java -version # this should output "1.8.X_XXX"
 
 ## Clone our project
 ```git clone https://github.com/emilytoyber/Minecraft_proj.git```
+
+## Download conda
+https://linuxize.com/post/how-to-install-anaconda-on-ubuntu-20-04/
