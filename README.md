@@ -1,6 +1,6 @@
 # Minecraft_proj
 
-Environment checked on python3.8 and Ubuntu20.04 on WSL2.
+Environment checked on python3.8 (pip 20.0.2) and Ubuntu20.04 on WSL2.
 
 ## Downloading Java8
 ```
