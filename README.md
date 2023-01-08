@@ -2,6 +2,15 @@
 
 Environment checked on python3.8 (pip 20.0.2) and Ubuntu20.04 on WSL2.
 
+## Setting up Environment
+```
+sudo apt-get install python3.8-venv
+python3.8 -m venv {name_of_env}
+source {name_of_env}/bin/activate
+pip install wheel
+pip install -r minerl_rec.txt
+```
+
 ## Downloading Java8
 ```
 sudo add-apt-repository ppa:openjdk-r/ppa
