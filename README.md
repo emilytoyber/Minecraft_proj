@@ -7,6 +7,7 @@ Environment checked on python3.8 (pip 20.0.2) and Ubuntu20.04 on WSL2.
 
 ## Setting up Environment
 ```
+cd Minecraft_proj/
 sudo apt-get install python3.8-venv
 python3.8 -m venv {name_of_env}
 source {name_of_env}/bin/activate
