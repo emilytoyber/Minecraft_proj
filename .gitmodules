@@ -1,6 +1,3 @@
-[submodule "agents/minecraft-bc"]
-	path = agents/minecraft-bc
-	url = https://github.com/Miffyli/minecraft-bc.git
 [submodule "agents/minerl_agent"]
 	path = agents/minerl_agent
 	url = https://github.com/chscheller/minerl_agent.git
