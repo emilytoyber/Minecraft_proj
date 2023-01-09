@@ -20,3 +20,7 @@ jinja2>=2.11.2
 imagehash>=4.0.0
 flaky
 pyglet
+protobuf<=3.20.1
+scipy==1.4.1
+tensorflow==2.5.0
+keras==2.6.0
