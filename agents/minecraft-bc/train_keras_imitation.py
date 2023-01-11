@@ -11,6 +11,7 @@ from tensorflow import keras
 import minerl
 import time
 import random
+from tqdm import tqdm
 
 from itertools import cycle
 from collections import deque
@@ -34,18 +35,18 @@ config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 set_session(tf.compat.v1.Session(config=config))
 
-MINERL_DATA_ROOT = os.getenv('MINERL_DATA_ROOT', 'data/')
+# MINERL_DATA_ROOT = os.getenv('MINERL_DATA_ROOT', 'data/')
 
 parser = ArgumentParser("Train Keras models to do imitation learning.")
 parser.add_argument("data_dir", type=str, help="Path to MineRL dataset.")
 parser.add_argument("model", type=str, default=None, help="Path where to store trained model.")
 parser.add_argument("datasets", type=str, nargs="+", help="List of datasets to use for the training. First one should include biggest action space")
-parser.add_argument("--workers", type=int, default=16, help="Number of dataset workers")
+parser.add_argument("--workers", type=int, default=2, help="Number of dataset workers")
 parser.add_argument("--max-seqlen", type=int, default=32, help="Max length per loader")
 parser.add_argument("--seqs-per-update", type=int, default=1, help="How many sequences are loaded per one update (mini-batch) train")
-parser.add_argument("--replay-size", type=int, default=500000, help="Maximum number of individual training samples to store in replay memory.")
+parser.add_argument("--replay-size", type=int, default=500, help="Maximum number of individual training samples to store in replay memory.")
 parser.add_argument("--epochs", type=int, default=10, help="Number of epochs to train.")
-parser.add_argument("--save-every-updates", type=int, default=250000, help="How many iterations between saving a snapshot of the model")
+parser.add_argument("--save-every-updates", type=int, default=250, help="How many iterations between saving a snapshot of the model")
 parser.add_argument("--batch-size", type=int, default=32, help="Ye' olde batch size.")
 parser.add_argument("--lr", type=float, default=0.00005, help="Adam learning rate.")
 parser.add_argument("--lr-decay", type=float, default=0.0, help="Decay for learning rate.")
@@ -168,7 +169,7 @@ def data_preprocessor_worker(
 def main(args):
     workers_per_loader = args.workers // len(args.datasets)
     data_loaders = [
-        gym.make(dataset, num_workers=workers_per_loader)
+        minerl.data.make(dataset, data_dir=args.data_dir, num_workers=workers_per_loader)
         for dataset in args.datasets
     ]
 
@@ -204,15 +205,15 @@ def main(args):
     # No weighting of the actions
     weights = [[1 for j in range(n_actions)] for n_actions in action_nvec]
 
-    model = keras.models.Model(inputs=(image_input, direct_input), output=model)
+    model = keras.Model(inputs=(image_input, direct_input), outputs=model)
     model.compile(
         loss=create_multicategorical_loss(action_nvec, weights, target_value=args.target_value),
-        optimizer=keras.optimizers.Adam(lr=args.lr, decay=args.lr_decay),
+        optimizer=keras.optimizers.Adam(learning_rate=args.lr, decay=args.lr_decay),
     )
 
     # Create iterators and alternate between them
     data_iterators = cycle([
-        data.sarsd_iter(num_epochs=args.epochs, max_sequence_len=args.max_seqlen)
+        data.batch_iter(args.batch_size, num_epochs=args.epochs, seq_len=args.max_seqlen)
         for data in data_loaders
     ])
 
@@ -228,7 +229,7 @@ def main(args):
     # Fixed Queue sizes and number of data preprocessors
     raw_data_queue = Queue(50)
     processed_data_queue = Queue(50)
-    for i in range(4):
+    for i in range(1):
         worker = Process(
             target=data_preprocessor_worker,
             args=(
@@ -252,9 +253,10 @@ def main(args):
     rewards = None
     state_primes = None
     dones = None
-
-    for data_iterator in data_iterators:
+    print('start')
+    for data_iterator in tqdm(data_iterators):
         try:
+            print("try")
             states, acts, rewards, state_primes, dones = next(data_iterator)
         except StopIteration:
             # Reached end of the iterator -> Enough epochs
@@ -269,12 +271,14 @@ def main(args):
         if processed_data_queue.qsize() >= args.seqs_per_update:
             trajectories = [processed_data_queue.get(timeout=30) for i in range(args.seqs_per_update)]
             # Add trajectory to replay memory
+            print("replay")
             trajectories_to_replay_memory(trajectories, replay_memory, args)
 
             # Check if we have enough samples in the replay memory to do an update
             if len(replay_memory) > args.batch_size:
                 # Get batch
                 train_inputs, train_outputs = get_training_batch(replay_memory, args.batch_size)
+                print("after batch creation")
                 average_losses.append(model.train_on_batch(
                     train_inputs,
                     train_outputs
@@ -282,7 +286,7 @@ def main(args):
                 num_updates += 1
 
             # Do not print status too often
-            if (num_updates % 1000) == 0:
+            if (num_updates % 100) == 0:
                 time_passed = int(time.time() - start_time)
                 print("Time: {:<8} Updates: {:<8} AvrgLoss: {:.4f}".format(
                     time_passed, num_updates, np.mean(average_losses)
@@ -300,6 +304,7 @@ def main(args):
             # Raw_data_queue was full, so just skip this sample.
             # If other exceptions arise, crash to it (e.g. queues shouldn't die)
             continue
+        print("end for")
 
     model.save(args.model)
 
