@@ -53,8 +53,15 @@ def run_imitation_test():
         mouse_speed=MOUSE_SPEED,
         replace_actions=REPLACE_ACTIONS
     )
+    
+    #added for statistics
+    stats = {'runtime': [], 'reward': []}
+    #
 
     for game_i in range(MINERL_MAX_EVALUATION_EPISODES):
+        #added
+        start = time()
+        #
         obs = env.reset()
 
         # Modification since submission: Track episodic rewards
@@ -80,10 +87,19 @@ def run_imitation_test():
             obs, reward, done, info = env.step(action_dict)
 
             episodic_reward += reward
+        #added
+        stats['runtime'].append(time() - start)
+        stats['reward'].append(total_reward)
+        #
 
         print("Episode {}. Reward {}".format(game_i, episodic_reward))
 
     env.close()
+    #added
+    import json
+    with open('./stats_BC.json', 'w') as outfile:
+        json.dump(stats, outfile)
+    #
 
 
 def main():
