@@ -82,6 +82,7 @@ def trajectories_to_replay_memory(trajectories, replay_memory, args):
             # Skip no-ops. Since we are doing
             # one-step imitation learning, no
             # ops just confuse our training.
+            print(type(actions), actions[0])
             if sum(actions[i]) == 0:
                 continue
 

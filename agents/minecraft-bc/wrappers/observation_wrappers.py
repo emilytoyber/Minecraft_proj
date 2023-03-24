@@ -136,7 +136,7 @@ class ObtainDiamondObservation:
 
         # Inventory counts
         for key, count in dict_obs["inventory"].items():
-            count = min(count, self.max_inventory_count)
+            count = np.minimum(count, self.max_inventory_count)
             if not self.numeric_df:
                 # One-hot encodings
                 direct_features.append(self.inventory_eyes[count])
