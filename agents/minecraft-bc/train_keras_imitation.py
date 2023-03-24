@@ -41,7 +41,7 @@ parser = ArgumentParser("Train Keras models to do imitation learning.")
 parser.add_argument("data_dir", type=str, help="Path to MineRL dataset.")
 parser.add_argument("model", type=str, default=None, help="Path where to store trained model.")
 parser.add_argument("datasets", type=str, nargs="+", help="List of datasets to use for the training. First one should include biggest action space")
-parser.add_argument("--workers", type=int, default=2, help="Number of dataset workers")
+parser.add_argument("--workers", type=int, default=16, help="Number of dataset workers")
 parser.add_argument("--max-seqlen", type=int, default=32, help="Max length per loader")
 parser.add_argument("--seqs-per-update", type=int, default=1, help="How many sequences are loaded per one update (mini-batch) train")
 parser.add_argument("--replay-size", type=int, default=500, help="Maximum number of individual training samples to store in replay memory.")
@@ -229,7 +229,7 @@ def main(args):
     # Fixed Queue sizes and number of data preprocessors
     raw_data_queue = Queue(50)
     processed_data_queue = Queue(50)
-    for i in range(1):
+    for i in range(4):
         worker = Process(
             target=data_preprocessor_worker,
             args=(
