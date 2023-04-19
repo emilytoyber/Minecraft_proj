@@ -5,6 +5,11 @@
 # Train Keras value estimation on MineRL data
 #
 
+import os
+#import logging
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+#logging.getLogger('tensorflow').setLevel(logging.WARNING)
+
 from argparse import ArgumentParser
 import numpy as np
 from tensorflow import keras
@@ -26,7 +31,6 @@ from utils.minerl_utils import unzip_states_or_actions
 from utils.replay_memory import ArbitraryReplayMemory
 
 import gym
-import os
 
 # Limit memory usage
 import tensorflow as tf
@@ -43,7 +47,7 @@ parser.add_argument("model", type=str, default=None, help="Path where to store t
 parser.add_argument("datasets", type=str, nargs="+", help="List of datasets to use for the training. First one should include biggest action space")
 parser.add_argument("--workers", type=int, default=16, help="Number of dataset workers")
 parser.add_argument("--max-seqlen", type=int, default=32, help="Max length per loader")
-parser.add_argument("--seqs-per-update", type=int, default=1, help="How many sequences are loaded per one update (mini-batch) train")
+parser.add_argument("--seqs-per-update", type=int, default=2, help="How many sequences are loaded per one update (mini-batch) train")
 parser.add_argument("--replay-size", type=int, default=500, help="Maximum number of individual training samples to store in replay memory.")
 parser.add_argument("--epochs", type=int, default=10, help="Number of epochs to train.")
 parser.add_argument("--save-every-updates", type=int, default=250, help="How many iterations between saving a snapshot of the model")
@@ -82,7 +86,7 @@ def trajectories_to_replay_memory(trajectories, replay_memory, args):
             # Skip no-ops. Since we are doing
             # one-step imitation learning, no
             # ops just confuse our training.
-            print(type(actions), actions[0])
+            # print(type(actions), actions[0])
             if sum(actions[i]) == 0:
                 continue
 
@@ -255,9 +259,9 @@ def main(args):
     state_primes = None
     dones = None
     print('start')
-    for data_iterator in tqdm(data_iterators):
+    for data_iterator in data_iterators:
         try:
-            print("try")
+            print("try",int(time.time() - start_time))
             states, acts, rewards, state_primes, dones = next(data_iterator)
         except StopIteration:
             # Reached end of the iterator -> Enough epochs
@@ -265,10 +269,14 @@ def main(args):
             #       on the smallest dataset, and thus does not
             #       reflect when whole data has been visited
             #       N times
+            print("break")
             break
 
         # First check if there are enough trajectories to be added to replay
         # memory before doing an timeout
+        # if processed_data_queue.qsize() % 2 == 0:
+        # print("processed_data_queue", processed_data_queue.qsize())
+        print("pre")
         if processed_data_queue.qsize() >= args.seqs_per_update:
             trajectories = [processed_data_queue.get(timeout=30) for i in range(args.seqs_per_update)]
             # Add trajectory to replay memory
@@ -285,6 +293,7 @@ def main(args):
                     train_outputs
                 ))
                 num_updates += 1
+                print("num_updates", num_updates)
 
             # Do not print status too often
             if (num_updates % 100) == 0:
@@ -304,6 +313,7 @@ def main(args):
         except queue.Full:
             # Raw_data_queue was full, so just skip this sample.
             # If other exceptions arise, crash to it (e.g. queues shouldn't die)
+            print("full")
             continue
         print("end for")
 

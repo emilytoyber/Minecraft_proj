@@ -49,7 +49,7 @@ def create_multicategorical_loss(action_nvec, weights, target_value=0.995):
             option_weights = np.array(weights[i])
 
             # KL loss
-            loss = trues * tf.log(trues / preds)
+            loss = trues * tf.compat.v1.log(trues / preds)
             # Apply weighting and sum over support
             loss = tf.reduce_sum(loss * option_weights, axis=-1)
 

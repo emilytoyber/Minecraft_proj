@@ -1,0 +1,2 @@
+2023-04-17 12:07:59 ise-p100-01 process_watcher[236627] INFO Process watcher started between parent 205522 and child 236598 
+2023-04-17 12:08:23 ise-p100-01 process_watcher[236627] INFO Child is not running anymore, launcher can terminate.
