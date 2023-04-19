@@ -214,7 +214,7 @@ def absolute_file_paths(directory):
 
 
 if __name__ == "__main__":
-    data = minerl.data.make('MineRLObtainDiamondVectorObf-v0', data_dir='data/',num_workers=6)
+    data = minerl.data.make('MineRLObtainDiamondVectorObf-v0', data_dir='/sise/4-year-ise-proj/Ise4thYear/CompareRL/data/',num_workers=6)
     model = dummy_model()
     loader = BatchSeqLoader(1, data._get_all_valid_recordings('data/MineRLObtainDiamondVectorObf-v0'), 128, model)
     i = 0

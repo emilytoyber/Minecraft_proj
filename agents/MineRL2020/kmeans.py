@@ -81,7 +81,7 @@ def absolute_file_paths(directory):
 def _do_kmeans(env_id, n_clusters, random_state, subtask_reward_max,
                maxlen_each, only_vector_converter):
     logger.debug(f'loading data...')
-    files = absolute_file_paths('data/MineRLObtainDiamondVectorObf-v0')
+    files = absolute_file_paths('/sise/4-year-ise-proj/Ise4thYear/CompareRL/data/MineRLObtainDiamondVectorObf-v0')
     # dat = minerl.data.make(env_id)
     act_vectors = []
     for f in files:

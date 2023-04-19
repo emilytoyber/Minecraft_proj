@@ -45,7 +45,7 @@ MINERL_TRAINING_MAX_INSTANCES = int(os.getenv('MINERL_TRAINING_MAX_INSTANCES', 5
 # Round 2: Training timeout is 4 days
 MINERL_TRAINING_TIMEOUT = int(os.getenv('MINERL_TRAINING_TIMEOUT_MINUTES', 4*24*60))
 # The dataset is available in data/ directory from repository root.
-MINERL_DATA_ROOT = os.getenv('MINERL_DATA_ROOT', 'data/')
+MINERL_DATA_ROOT = os.getenv('MINERL_DATA_ROOT', '/sise/4-year-ise-proj/Ise4thYear/CompareRL/data/')
 print(MINERL_DATA_ROOT, file=sys.stderr)
 
 
@@ -152,9 +152,9 @@ def main():
     cached_kmeans("train","MineRLObtainDiamondVectorObf-v0")
     print("lets gooo", file=sys.stderr)
 
-    train_files = absolute_file_paths('data/MineRLObtainIronPickaxeVectorObf-v0')+\
-                  absolute_file_paths('data/MineRLObtainIronPickaxeVectorObf-v0')+\
-                  absolute_file_paths('data/MineRLTreechopVectorObf-v0')
+    train_files = absolute_file_paths('/sise/4-year-ise-proj/Ise4thYear/CompareRL/data/MineRLObtainIronPickaxeVectorObf-v0')+\
+                  absolute_file_paths('/sise/4-year-ise-proj/Ise4thYear/CompareRL/data/MineRLObtainIronPickaxeVectorObf-v0')+\
+                  absolute_file_paths('/sise/4-year-ise-proj/Ise4thYear/CompareRL/data/MineRLTreechopVectorObf-v0')
 
     model = Model()
     shuffle(train_files)
