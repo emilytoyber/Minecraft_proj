@@ -1,0 +1,12 @@
+gym>=0.13.1,<0.20
+scipy
+crowdai_api
+dm-sonnet==1.35
+coloredlogs
+matplotlib
+seaborn
+numpy==1.17.2
+opencv-python
+pyro4
+wrapt==1.11.2
+aicrowd-repo2docker==0.9.1

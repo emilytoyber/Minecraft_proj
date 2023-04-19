@@ -11,11 +11,17 @@ from gym import Wrapper
 MAX_INV_ONEHOT = 8
 
 
-def one_hot_encode(value, num_possibilities):
+def one_hot_encode(values, num_possibilities):
     """Returns one-hot list for value with max number of possibilities"""
-    one_hot = [0 for i in range(num_possibilities)]
-    one_hot[value] = 1
-    return one_hot
+    # one_hot = [0 for i in range(num_possibilities)]
+    # one_hot[value] = 1
+    # return one_hot
+    one_hots=[]
+    for value in values:
+      one_hot = [0 for i in range(num_possibilities)]
+      one_hot[value] = 1
+      one_hots.append(one_hot)
+    return one_hots
 
 
 def observation_data_augmentation(obs, do_flipping=False):
@@ -108,24 +114,29 @@ class ObtainDiamondObservation:
         direct_features = []
 
         # Main-hand damage
-        damage = dict_obs["equipped_items"]["mainhand"]["damage"]
-        max_damage = max(1, dict_obs["equipped_items"]["mainhand"]["maxDamage"])
+        # damage = dict_obs["equipped_items"]["mainhand"]["damage"]
+        damage = dict_obs["equipped_items.mainhand.damage"]
+
+        # max_damage = max(1, dict_obs["equipped_items"]["mainhand"]["maxDamage"])
+        max_damage=np.maximum(np.ones(len(damage)),dict_obs["equipped_items.mainhand.maxDamage"])
         direct_features.append([damage / max_damage, ])
         # Main-hand item type
-        mainhand_item = dict_obs["equipped_items"]["mainhand"]["type"]
+        # mainhand_item = dict_obs["equipped_items"]["mainhand"]["type"]
+        mainhand_item = dict_obs["equipped_items.mainhand.type"]
 
         # Workaround for a bug:
         # If player destroys dirt and pickups the dirt block,
         # mainhand_item will be "dirt" (not an int).
         # -> Replace all strings with integer 0
-        if type(mainhand_item) == str:
-            mainhand_item = 0
+        # if type(mainhand_item) == str:
+        #     mainhand_item = 0
+        mainhand_item=np.array(list(map(lambda x:1 if isinstance(x,str) else x,mainhand_item)))
 
         direct_features.append(one_hot_encode(mainhand_item, self.num_hand_items))
 
         # Inventory counts
         for key, count in dict_obs["inventory"].items():
-            count = min(count, self.max_inventory_count)
+            count = np.minimum(count, self.max_inventory_count)
             if not self.numeric_df:
                 # One-hot encodings
                 direct_features.append(self.inventory_eyes[count])
@@ -133,7 +144,7 @@ class ObtainDiamondObservation:
                 # Numeric encodings [0,1]
                 direct_features.append([count / self.max_inventory_count])
 
-        direct_features = np.concatenate(direct_features).astype(np.float32)
+        # direct_features = np.concatenate(direct_features).astype(np.float32)
 
         obs = (pov_obs, direct_features)
 

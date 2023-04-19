@@ -44,12 +44,21 @@ def mouse_action_to_discrete(camera_action):
     Takes in one value (float) and returns one value in {0,1,2}.
     0 being no movement, 1 neg movement and 2 pos movement.
     """
-    if camera_action < -DEFAULT_MOUSE_MARGIN:
-        return 1
-    elif camera_action > DEFAULT_MOUSE_MARGIN:
-        return 2
-    else:
-        return 0
+    # if camera_action < -DEFAULT_MOUSE_MARGIN:
+    #     return 1
+    # elif camera_action > DEFAULT_MOUSE_MARGIN:
+    #     return 2
+    # else:
+    #     return 0
+    accs=[]
+    for acc in camera_action:
+      if acc < -DEFAULT_MOUSE_MARGIN:
+          accs.append(1)
+      elif acc > DEFAULT_MOUSE_MARGIN:
+          accs.append(2)
+      else:
+          accs.append(0)
+    return(accs)
 
 
 def discrete_to_mouse_action(discrete_action, mouse_speed):
@@ -157,14 +166,29 @@ class ObtainDiamondActions:
 
         Takes in dict from MineRL, returns a multidiscrete
         """
+        # discrete_actions = [None for i in range(self.num_discretes)]
+        # for i, key in enumerate(self.discrete_names):
+        #     if key == "camera_x":
+        #         discrete_actions[i] = mouse_action_to_discrete(action_dict["camera"][1])
+        #     elif key == "camera_y":
+        #         discrete_actions[i] = mouse_action_to_discrete(action_dict["camera"][0])
+        #     else:
+        #         discrete_actions[i] = int(action_dict[key])
+        # return discrete_actions
         discrete_actions = [None for i in range(self.num_discretes)]
         for i, key in enumerate(self.discrete_names):
             if key == "camera_x":
-                discrete_actions[i] = mouse_action_to_discrete(action_dict["camera"][1])
+                discrete_actions[i] = mouse_action_to_discrete(action_dict["camera"][:,1])
             elif key == "camera_y":
-                discrete_actions[i] = mouse_action_to_discrete(action_dict["camera"][0])
+                discrete_actions[i] = mouse_action_to_discrete(action_dict["camera"][:,0])
             else:
-                discrete_actions[i] = int(action_dict[key])
+              temp=[]
+              for k in range(len(action_dict[key])):
+                try:
+                  temp.append(int(action_dict[key][k]))
+                except:
+                  temp.append(0)
+              discrete_actions[i] = np.array(temp)
         return discrete_actions
 
     def multidiscrete_to_dict(self, action_multi):
