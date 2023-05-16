@@ -86,7 +86,7 @@ def train(model, mode, steps, loader, logger):
     modcount = 0
     for i in range(int(steps/ BATCH_SIZE / SEQ_LEN)):
         step+=1
-        #print(i)
+        print(i, int(steps/ BATCH_SIZE / SEQ_LEN))
         spatial, nonspatial, prev_action, act, _, _, hidden = loader.get_batch(BATCH_SIZE)
         count += BATCH_SIZE*SEQ_LEN
         modcount += BATCH_SIZE*SEQ_LEN

@@ -22,6 +22,9 @@ from model import Model
 import torch
 import cv2
 
+#xvfb
+#from xvfbwrapper import Xvfb
+
 # All the evaluations will be evaluated on MineRLObtainDiamondVectorObf-v0 environment
 MINERL_GYM_ENV = os.getenv('MINERL_GYM_ENV', 'MineRLObtainDiamondVectorObf-v0')
 MINERL_MAX_EVALUATION_EPISODES = int(os.getenv('MINERL_MAX_EVALUATION_EPISODES', 100))
@@ -84,7 +87,7 @@ class MineRLAgentBase(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def run_agent_on_episode(self, single_episode_env : Episode):
+    def run_agent_on_episode(self, single_episode_env):
         """This method runs your agent on a SINGLE episode.
 
         You should just implement the standard environment interaction loop here:
@@ -129,7 +132,7 @@ class MineRLMatrixAgent(MineRLAgentBase):
         self.act = lambda flat_obs: {'vector': np.clip(self.matrix.dot(flat_obs), -1,1)}
 
 
-    def run_agent_on_episode(self, single_episode_env : Episode):
+    def run_agent_on_episode(self, single_episode_env):
         """Runs the agent on a SINGLE episode.
 
         Args:
@@ -162,7 +165,7 @@ class MineRLNetworkAgent(MineRLAgentBase):
         self.model.to(device)
 
 
-    def run_agent_on_episode(self, single_episode_env : Episode):
+    def run_agent_on_episode(self, single_episode_env):
         """Runs the agent on a SINGLE episode.
 
         Args:
@@ -199,7 +202,7 @@ class MineRLRandomAgent(MineRLAgentBase):
     def load_agent(self):
         pass # Nothing to do, this agent is a random agent.
 
-    def run_agent_on_episode(self, single_episode_env : Episode):
+    def run_agent_on_episode(self, single_episode_env):
         obs = single_episode_env.reset()
         done = False
         while not done:
@@ -249,6 +252,10 @@ def main():
     print("average:", sum(rewards)/MINERL_MAX_EVALUATION_EPISODES)
 
 if __name__ == "__main__":
+    # for xvfb
+    #xvfb = Xvfb(width=1280, height=720, colordepth=24)
+    #xvfb.start()
     main()
+    #xvfb.stop()
     
 
