@@ -23,7 +23,7 @@ from kmeans import cached_kmeans
 
 # In ONLINE=True mode the code saves only the final version with early stopping,
 # in ONLINE=False it saves 20 intermediate versions during training.
-ONLINE = True
+ONLINE = False
 
 trains_loaded = True
 try:
@@ -149,6 +149,7 @@ def main():
         logger = None
 
     os.makedirs("train", exist_ok=True)
+    os.makedirs("testing", exist_ok=True)
     cached_kmeans("train","MineRLObtainDiamondVectorObf-v0")
     print("lets gooo", file=sys.stderr)
 
