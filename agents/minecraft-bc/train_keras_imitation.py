@@ -12,7 +12,7 @@ import os
 
 from argparse import ArgumentParser
 import numpy as np
-from tensorflow import keras
+# from tensorflow import keras
 import minerl
 import time
 import random
@@ -23,7 +23,7 @@ from collections import deque
 from multiprocessing import Process, Queue
 import queue
 
-from keras_utils.models import policy_net, nature_dqn_head, resnet_head, IMPALA_resnet_head
+from keras_utils.models import IMPALA_resnet_head
 from keras_utils.losses import create_multicategorical_loss
 from wrappers.observation_wrappers import ObtainDiamondObservation
 from wrappers.action_wrappers import ObtainDiamondActions
@@ -32,12 +32,13 @@ from utils.replay_memory import ArbitraryReplayMemory
 
 import gym
 
+import torch
 # Limit memory usage
-import tensorflow as tf
-from tensorflow.python.keras.backend import set_session
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.allow_growth = True
-set_session(tf.compat.v1.Session(config=config))
+# import tensorflow as tf
+# from tensorflow.python.keras.backend import set_session
+# config = tf.compat.v1.ConfigProto()
+# config.gpu_options.allow_growth = True
+# set_session(tf.compat.v1.Session(config=config))
 
 # MINERL_DATA_ROOT = os.getenv('MINERL_DATA_ROOT', 'data/')
 
@@ -64,11 +65,10 @@ parser.add_argument("--no-augmentation", action="store_true", help="Do not use a
 parser.add_argument("--no-flipping", action="store_true", help="Do not do horizontal flipping for augmentation.")
 
 CNN_HEADS = {
-    "nature": nature_dqn_head,
-    "resnet": resnet_head,
     "impala": IMPALA_resnet_head
 }
-
+# device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device="cuda" if torch.cuda.is_available() else "cpu"
 
 def trajectories_to_replay_memory(trajectories, replay_memory, args):
     """
@@ -196,25 +196,30 @@ def main(args):
     direct_shape = obs_processor.observation_space[1].shape
 
     cnn_head_func = CNN_HEADS[args.cnn_head]
+    print("use device:",device)
+    model=IMPALA_resnet_head(action_nvec,direct_shape[0]).to(device)
+    weights = [[1 for j in range(n_actions)] for n_actions in action_nvec]
+    loss_func=create_multicategorical_loss(action_nvec, weights, target_value=args.target_value)
+    opt=torch.optim.Adam(model.parameters(),lr=args.lr, weight_decay=args.lr_decay)
 
-    model, individual_outputs, (image_input, direct_input) = policy_net(
-        image_shape[:2],
-        image_shape[2],
-        action_nvec=action_nvec,
-        num_direct=direct_shape[0],
-        head_func=cnn_head_func,
-        body_size=args.nn_size,
-        l2_weight=args.l2
-    )
+    # model, individual_outputs, (image_input, direct_input) = policy_net(
+    #     image_shape[:2],
+    #     image_shape[2],
+    #     action_nvec=action_nvec,
+    #     num_direct=direct_shape[0],
+    #     head_func=cnn_head_func,
+    #     body_size=args.nn_size,
+    #     l2_weight=args.l2
+    # )
 
     # No weighting of the actions
-    weights = [[1 for j in range(n_actions)] for n_actions in action_nvec]
+    # weights = [[1 for j in range(n_actions)] for n_actions in action_nvec]
 
-    model = keras.Model(inputs=(image_input, direct_input), outputs=model)
-    model.compile(
-        loss=create_multicategorical_loss(action_nvec, weights, target_value=args.target_value),
-        optimizer=keras.optimizers.Adam(learning_rate=args.lr, decay=args.lr_decay),
-    )
+    # model = keras.Model(inputs=(image_input, direct_input), outputs=model)
+    # model.compile(
+    #     loss=create_multicategorical_loss(action_nvec, weights, target_value=args.target_value),
+    #     optimizer=keras.optimizers.Adam(learning_rate=args.lr, decay=args.lr_decay),
+    # )
 
     # Create iterators and alternate between them
     data_iterators = cycle([
@@ -278,6 +283,7 @@ def main(args):
         # print("processed_data_queue", processed_data_queue.qsize())
         print("pre")
         if processed_data_queue.qsize() >= args.seqs_per_update:
+            print("trajectories")
             trajectories = [processed_data_queue.get(timeout=30) for i in range(args.seqs_per_update)]
             # Add trajectory to replay memory
             print("replay")
@@ -286,12 +292,21 @@ def main(args):
             # Check if we have enough samples in the replay memory to do an update
             if len(replay_memory) > args.batch_size:
                 # Get batch
-                train_inputs, train_outputs = get_training_batch(replay_memory, args.batch_size)
+                (train_inputs1,train_inputs2), train_outputs = get_training_batch(replay_memory, args.batch_size)
                 print("after batch creation")
-                average_losses.append(model.train_on_batch(
-                    train_inputs,
-                    train_outputs
-                ))
+                opt.zero_grad()
+                train_inputs1=torch.tensor(train_inputs1).to(device)
+                train_inputs2=torch.tensor(train_inputs2).to(device)
+                train_outputs=torch.tensor(train_outputs).to(device)
+                preds,(x,direct_input) = model(train_inputs1,train_inputs2)
+                loss=loss_func(preds,train_outputs)
+                average_losses(loss.item())
+                loss.backward()
+                opt.step()
+                # average_losses.append(model.train_on_batch(
+                #     train_inputs,
+                #     train_outputs
+                # ))
                 num_updates += 1
                 print("num_updates", num_updates)
 
@@ -304,7 +319,7 @@ def main(args):
 
             # Check if we should save a snapshot
             if (num_updates - last_save_updates) >= args.save_every_updates:
-                model.save(args.model + "_steps_{}".format(num_updates))
+                torch.save(model.state_dict(),args.model + "_steps_{}".format(num_updates))
                 last_save_updates = num_updates
 
         # Put new data for workers to handle
@@ -317,7 +332,7 @@ def main(args):
             continue
         print("end for")
 
-    model.save(args.model)
+    torch.save(model.state_dict(),args.model)
 
     # Close queues
     raw_data_queue.close()
