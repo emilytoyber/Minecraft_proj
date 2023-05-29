@@ -11,6 +11,8 @@ from torch.nn import init
 from torch.nn.init import trunc_normal_,_calculate_fan_in_and_fan_out
 import numpy as np
 
+device="cuda" if torch.cuda.is_available() else "cpu"
+
 class IMPALA_resnet_head(nn.Module):
 #Shalev's version  
 
@@ -129,7 +131,7 @@ class IMPALA_resnet_head(nn.Module):
 
 
     def forward(self,x,num_direct,body_size="small"):
-      model=model.permute(0,3,1,2)
+      model=x.permute(0,3,1,2)
       model=self.maxpool(self.conv3_16(model))
       # for 1
       block_input = model
@@ -177,6 +179,7 @@ class IMPALA_resnet_head(nn.Module):
       preds=[]
       if body_size == "small":
         for i,curr_model in enumerate(self.preds_small):
+          curr_model = curr_model.to(device)
           curr=curr_model(model)
           if i==0:
             preds=curr
@@ -184,6 +187,7 @@ class IMPALA_resnet_head(nn.Module):
             preds= torch.cat((preds, curr),1)
       elif body_size == "big":
         for i,curr_model in enumerate(self.preds_big):
+          curr_model = curr_model.to(device)
           curr=curr_model(model)
           if i==0:
             preds=curr

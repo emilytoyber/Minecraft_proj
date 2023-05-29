@@ -16,7 +16,7 @@ import numpy as np
 import minerl
 import time
 import random
-from tqdm import tqdm
+# from tqdm import tqdm
 
 from itertools import cycle
 from collections import deque
@@ -48,7 +48,7 @@ parser.add_argument("model", type=str, default=None, help="Path where to store t
 parser.add_argument("datasets", type=str, nargs="+", help="List of datasets to use for the training. First one should include biggest action space")
 parser.add_argument("--workers", type=int, default=16, help="Number of dataset workers")
 parser.add_argument("--max-seqlen", type=int, default=32, help="Max length per loader")
-parser.add_argument("--seqs-per-update", type=int, default=2, help="How many sequences are loaded per one update (mini-batch) train")
+parser.add_argument("--seqs-per-update", type=int, default=1, help="How many sequences are loaded per one update (mini-batch) train")
 parser.add_argument("--replay-size", type=int, default=500, help="Maximum number of individual training samples to store in replay memory.")
 parser.add_argument("--epochs", type=int, default=10, help="Number of epochs to train.")
 parser.add_argument("--save-every-updates", type=int, default=250, help="How many iterations between saving a snapshot of the model")
@@ -239,7 +239,7 @@ def main(args):
     # Fixed Queue sizes and number of data preprocessors
     raw_data_queue = Queue(50)
     processed_data_queue = Queue(50)
-    for i in range(4):
+    for i in range(2):
         worker = Process(
             target=data_preprocessor_worker,
             args=(
@@ -298,9 +298,10 @@ def main(args):
                 train_inputs1=torch.tensor(train_inputs1).to(device)
                 train_inputs2=torch.tensor(train_inputs2).to(device)
                 train_outputs=torch.tensor(train_outputs).to(device)
+                #print(next(model.parameters()).device, train_inputs1.device, train_inputs2.device)
                 preds,(x,direct_input) = model(train_inputs1,train_inputs2)
-                loss=loss_func(preds,train_outputs)
-                average_losses(loss.item())
+                loss=loss_func(train_outputs,preds)
+                average_losses.append(loss.item())
                 loss.backward()
                 opt.step()
                 # average_losses.append(model.train_on_batch(
@@ -319,7 +320,7 @@ def main(args):
 
             # Check if we should save a snapshot
             if (num_updates - last_save_updates) >= args.save_every_updates:
-                torch.save(model.state_dict(),args.model + "_steps_{}".format(num_updates))
+                torch.save(model.state_dict(),args.model + "_steps_{}.pt".format(num_updates))
                 last_save_updates = num_updates
 
         # Put new data for workers to handle

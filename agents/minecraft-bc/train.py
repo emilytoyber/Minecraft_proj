@@ -16,6 +16,7 @@ MINERL_TRAINING_MAX_INSTANCES = int(os.getenv('MINERL_TRAINING_MAX_INSTANCES', 5
 MINERL_TRAINING_TIMEOUT = int(os.getenv('MINERL_TRAINING_TIMEOUT_MINUTES', 15))
 # The dataset is available in data/ directory from repository root.
 MINERL_DATA_ROOT = os.getenv('MINERL_DATA_ROOT', 'data/')
+print(MINERL_DATA_ROOT)
 
 
 def train_pure_imitation_learning():
@@ -29,7 +30,8 @@ def train_pure_imitation_learning():
         "--l2", "1e-5",
         # Do not save unnecessary snapshot-files of the model
         "--save-every-updates", "250",
-        MINERL_DATA_ROOT,
+        #MINERL_DATA_ROOT,
+        "/sise/4-year-ise-proj/Ise4thYear/CompareRL/data/",
         "train/imitation_impala_epochs25",
         "MineRLObtainDiamond-v0", "MineRLObtainIronPickaxe-v0",
     ]

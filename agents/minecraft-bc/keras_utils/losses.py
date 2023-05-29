@@ -11,6 +11,8 @@ import numpy as np
 import torch
 from torch import nn
 
+device="cuda" if torch.cuda.is_available() else "cpu"
+
 class create_multicategorical_loss(nn.Module):
     def __init__(self,action_nvec, weights, target_value=0.995):
             super(create_multicategorical_loss, self).__init__()
@@ -19,13 +21,17 @@ class create_multicategorical_loss(nn.Module):
             self.target_value=target_value
 
     def forward(self,y_true, y_pred):
-        y_true=y_true.type('torch.int32')
+        y_true=y_true.type(torch.int32)
         # y_true = tf.cast(y_true, tf.int32)
         losses = []
         current_index = 0
         for i, action_size in enumerate(self.action_nvec):
             preds = y_pred[:, current_index: current_index + action_size]
-            trues=torch.nn.functional.one_hot(y_true[:, i], action_size)
+            #trues=torch.nn.functional.one_hot(torch.squeeze(y_true[:, i]), action_size)
+            trues = torch.zeros(y_true.shape[0], action_size).to(device)
+            #print(trues.shape)
+            trues.scatter_(1, y_true[:, i].unsqueeze(1).long(), 1)
+            #print(trues.shape)
             # trues = tf.one_hot(y_true[:, i], action_size)
 
             # Do not aim for strict {0,1} as this
@@ -38,7 +44,7 @@ class create_multicategorical_loss(nn.Module):
             epsilon=1e-07
             # epsilon = K.epsilon()
             preds=torch.clamp(preds, epsilon, 1.0)
-            trues=torch.clamp(preds, epsilon, 1.0)
+            trues=torch.clamp(trues, epsilon, 1.0)
             # preds = tf.clip_by_value(preds, epsilon, 1.0)
             # trues = tf.clip_by_value(trues, epsilon, 1.0)
 
@@ -51,13 +57,13 @@ class create_multicategorical_loss(nn.Module):
             loss = trues * torch.log(trues / preds)
             # loss = trues * tf.compat.v1.log(trues / preds)
             # Apply weighting and sum over support
-            loss =torch.sum(loss * option_weights, axis=-1)
+            loss =torch.sum(loss * torch.tensor(option_weights).cuda(), axis=-1)
             # loss = tf.reduce_sum(loss * option_weights, axis=-1)
 
             losses.append(loss)
             current_index += action_size
         # Sum over different actions and then mean over batch elements
-        loss = torch.mean(torch.sum(losses, dim=0))
+        loss = torch.mean(torch.sum(torch.stack(losses), dim=0))
         return loss
 # def create_multicategorical_loss(action_nvec, weights, target_value=0.995):
     # """ Returns loss appropiate for multicategorical training.
