@@ -11,13 +11,12 @@ https://linuxize.com/post/how-to-install-anaconda-on-ubuntu-20-04/ (if not downl
 ## Setup environments
 ```
 cd Minecraft_proj/
-conda env create -f bc_env.yaml
 conda env create -f imi_env.yaml
 ```
 
 ## Running
-In order to run the training part of the models, activate the relevant environment and cd to the respective directory (agents/MineRL2020/ for imi_env and agents/minecraft_bc/ for bc_env), then run ```python train.py```.
-For testing, running the respective colab notebook is needed (colab because of the virtual frame buffer in google colab) after cloning the repository to colab.
+In order to run the training part of the models, activate the relevant environment and cd to the respective directory (agents/MineRL2020/ for imi_env), then run ```python train.py``` for imitation, run BC.ipynb for behavioral cloning algorithm.
+For testing, running the respective colab notebook is needed (colab because of the virtual frame buffer in google colab) after cloning the repository to colab and uploading the relevant trained model (BC.ipynb includes both training and testing of BC, Imitation_test.ipynb includes the test of the Imitation agent).
 
 ## Evaluation
 Run comparison_environment.ipynb after uploading the respective jsons obtained from the colab notebooks.
