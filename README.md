@@ -15,14 +15,22 @@ conda env create -f imi_env.yaml
 ```
 
 ## Running
-In order to run the training part of the models, activate the relevant environment and cd to the respective directory (agents/MineRL2020/ for imi_env), then run ```python train.py``` for imitation, run BC.ipynb for behavioral cloning algorithm.
-For testing, running the respective colab notebook is needed (colab because of the virtual frame buffer in google colab) after cloning the repository to colab and uploading the relevant trained model (BC.ipynb includes both training and testing of BC, Imitation_test.ipynb includes the test of the Imitation agent).
+
+*The files state_to_transition.json, pov_cluster_to_transition_with_30K_pov.ipynb and files in jsons_actions.zip are created in preprocess_data.ipynb*
+
+In order to run the training part of the models, activate the relevant environment and cd to the respective directory (agents/MineRL2020/ for imi_env), then run ```python train.py``` for imitation, run agents/basic_BC.ipynb for behavioral cloning algorithm.
+
+For testing, running the respective colab notebook is needed (colab is needed because of the virtual frame buffer that exists in google colab, other platforms with a virtual frame buffer may also be optional) after cloning the repository to colab and uploading the relevant trained model (basic_BC.ipynb includes both training and testing of BC, Imitation_test.ipynb includes the test of the Imitation agent).
+
+Random_Agent.ipynb runs the random baseline of the environment, hardcoded_script_ironpickaxe.ipynb runs the scripted version of our algorithm.
+
+Our main new algorithm uses a clustering model of DBSCAN+KNN trained by running POVs_clustering.ipynb (it is now limited to only 30K POVs per player in the data, because the code crashed due to not having enough resources in colab, you may drop the slicing of 30K if you have more resources).
+
+Testing this agent is done by running choose_actions.ipynb.
 
 ## Evaluation
 Run comparison_environment.ipynb after uploading the respective jsons obtained from the colab notebooks.
 
 ## Project Explanation
 Our project is a comparison project between different algorithms in Artificial Intelligence trained and tested on environments from the MineRL competitions.
-Most of the algorithms are submissions of different teams from the 2019-2022 competitions.
-
-This README still needs the final third algorithm.
+Some of the algorithms are submissions of different teams from the 2019-2022 competitions.
