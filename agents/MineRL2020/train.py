@@ -98,7 +98,7 @@ def train(model, mode, steps, loader, logger):
         loss_dict = update_loss_dict(loss_dict, ldict)
         loader.put_back(hidden)
 
-        loss = loss.sum() # / BATCH_SIZE / SEQ_LEN
+        loss = loss.sum() 
         loss.backward()
         
         losssum += loss.item()

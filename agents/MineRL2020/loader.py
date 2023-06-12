@@ -101,7 +101,7 @@ class ReplayRoller():
         self.in_sem = mp.Semaphore(0)
         self.data = []
         self.hidden = self.model.get_zero_state(1)
-        #print(self.hidden)
+        
         self.hidden = (self.hidden[0].cuda(),self.hidden[1].cuda())
         self.pipe_my, pipe_other = pseudo_pipe()
         self.files = files_queue
@@ -189,8 +189,7 @@ class BatchSeqLoader():
         output = []
         for d in data[:-1]:
             padded = pad_sequence(d).cuda()
-            #print(d[0].shape)
-            #print(padded.shape)
+            
             output.append(padded)
 
         return output + [self.batch_lstm(data[-1])]

@@ -22,8 +22,7 @@ from model import Model
 import torch
 import cv2
 
-#xvfb
-#from xvfbwrapper import Xvfb
+
 
 # All the evaluations will be evaluated on MineRLObtainDiamondVectorObf-v0 environment
 MINERL_GYM_ENV = os.getenv('MINERL_GYM_ENV', 'MineRLObtainDiamondVectorObf-v0')
@@ -252,10 +251,8 @@ def main():
     print("average:", sum(rewards)/MINERL_MAX_EVALUATION_EPISODES)
 
 if __name__ == "__main__":
-    # for xvfb
-    #xvfb = Xvfb(width=1280, height=720, colordepth=24)
-    #xvfb.start()
+   
     main()
-    #xvfb.stop()
+    
     
 
