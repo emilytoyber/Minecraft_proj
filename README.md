@@ -31,6 +31,15 @@ Testing this agent is done by running choose_actions.ipynb.
 ## Evaluation
 Run comparison_environment.ipynb after uploading the respective jsons obtained from the colab notebooks.
 
+### Adding new algorithms
+In order to add new algorithms to the comparison environment, one has to export a json file of execution statistics from the algorithm. Json will be constructed in the following way: 
+```
+stats['runtime'].append(time() - start)
+stats['reward'].append(reward_sum)
+stats['reward_at'].append(rewards)
+```
+reward_sum is equal to the total reward of the episode, rewards is a list of tuples (steps, reward) where reward is the immediate (non-zero) reward of the action.
+
 ## Project Explanation
 Our project is a comparison project between different algorithms in Artificial Intelligence trained and tested on environments from the MineRL competitions.
 Some of the algorithms are submissions of different teams from the 2019-2022 competitions.
